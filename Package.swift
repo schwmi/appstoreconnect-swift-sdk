@@ -12,7 +12,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/IBM-Swift/Swift-JWT.git",
-            from: "3.1")
+            from: "3.1.0")
     ],
     targets: [
         .target(
