@@ -67,9 +67,8 @@ struct JWTBuilder: JWTBuilderProtocol {
         let header = JWTHeader(alg: "ES256", typ: "JWT", kid: self.pKeyID)
         let payload = Payload(issuerIdentifier: IssuerClaim(value: self.issuerID), expirationDate: ExpirationClaim(value: expirationDate))
         let jwt = JWT(header: header, payload: payload)
-        guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
-
-        let signed = try jwt.sign(using: JWTSigner.hs256(key: privateKey))
+        let signer = try self.makeSigner()
+        let signed = try jwt.sign(using: signer)
         guard let token = String(data: signed, encoding: .utf8) else { throw Error.tokenGeneration }
 
         return token
@@ -77,13 +76,22 @@ struct JWTBuilder: JWTBuilderProtocol {
 
     func validate(_ token: JWTToken) -> Bool {
         do {
-            guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
-
-            let signer = JWTSigner.hs256(key: privateKey)
+            let signer = try self.makeSigner()
             _ = try JWT<Payload>(from: token, verifiedUsing: signer)
             return true
         } catch {
             return false
         }
+    }
+}
+
+// MARK: - Private
+
+private extension JWTBuilder {
+
+    func makeSigner() throws -> JWTSigner {
+        guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
+
+        return JWTSigner.hs256(key: privateKey)
     }
 }
