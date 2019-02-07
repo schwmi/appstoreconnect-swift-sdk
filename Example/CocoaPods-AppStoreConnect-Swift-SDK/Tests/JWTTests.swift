@@ -18,10 +18,13 @@ final class JWTTests: XCTestCase {
 
     /// It should report an invalid P8 private key.
     func testInvalidP8PrivateKey() {
-        let jwt = JWT(keyIdentifier: configuration.privateKeyID, issuerIdentifier: configuration.issuerID, expireDuration: 20)
+        let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                    pKeyID: configuration.privateKeyID,
+                                    pKey: "&^&%^$%$%",
+                                    expireDuration: 20)
 
-        XCTAssertThrowsError(try jwt.signedToken(using: "&^&%^$%$%")) { (error) in
-            XCTAssertEqual(error as! JWT.Error, JWT.Error.invalidP8PrivateKey)
+        XCTAssertThrowsError(try jwtBuilder.makeJWTToken()) { error in
+            XCTAssertEqual(error as? JWTBuilder.Error, JWTBuilder.Error.invalidPrivateKey)
         }
     }
 }

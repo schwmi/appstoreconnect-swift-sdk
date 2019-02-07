@@ -9,8 +9,12 @@ import Foundation
 import SwiftJWT
 
 
-/// JWT Token used for communication with AppstoreConnectAPI
+/// Creates a JWT Token used for communication with AppstoreConnectAPI
 struct JWTBuilder {
+
+    enum Error: Swift.Error {
+        case invalidPrivateKey
+    }
 
     private struct AudienceClaim: Claims {
         /// Your issuer identifier from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
@@ -45,9 +49,10 @@ struct JWTBuilder {
         self.expireDuration = expireDuration
     }
 
-    func makeJWT() throws -> String {
-        let jwt = JWT(header: .init(kid: self.pKeyID), claims: AudienceClaim(issuerIdentifier: self.issuerID, expirationTime: Date().addingTimeInterval(self.expireDuration)))
-        let keyData = self.pKey.bytes.base64Decoded
-        return jwt.sign(using: JWTSigner.rs256(privateKey: keyData))
+    func makeJWTToken() throws -> String {
+        var jwt = JWT(header: .init(kid: self.pKeyID), claims: AudienceClaim(issuerIdentifier: self.issuerID, expirationTime: Date().addingTimeInterval(self.expireDuration)))
+        guard let base64Data = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
+
+        return try jwt.sign(using: JWTSigner.rs256(privateKey: base64Data))
     }
 }
