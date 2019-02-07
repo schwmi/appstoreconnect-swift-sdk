@@ -30,16 +30,40 @@ final class JWTBuilderTests: XCTestCase {
 
     /// Test JWTToken generation
     func testTokenGeneration() {
-        let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
-                                    pKeyID: configuration.privateKeyID,
-                                    pKey: configuration.privateKey,
-                                    expireDuration: 20)
+        do {
+            let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                        pKeyID: configuration.privateKeyID,
+                                        pKey: configuration.privateKey,
+                                        expireDuration: 20)
+
+            do {
+                _ = try jwtBuilder.makeJWTToken()
+            } catch {
+                XCTFail("Unexpected error \(error)")
+            }
+        }
 
         do {
-            let token = try jwtBuilder.makeJWTToken()
-            print(token)
-        } catch {
-            XCTFail("Unexpected error \(error)")
+            let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                        pKeyID: configuration.privateKeyID,
+                                        pKey: configuration.privateKey,
+                                        expireDuration: 0,
+                                        referenceDate: Date.distantPast)
+
+            do {
+                let token = try jwtBuilder.makeJWTToken()
+                let tokenComponents = token.components(separatedBy: ".")
+                guard tokenComponents.count == 3 else {
+                    XCTFail("We expect 3 components")
+                    return
+                }
+                let header = tokenComponents[0]
+                let payload = tokenComponents[1]
+                XCTAssertEqual(header, "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ijk0MUM0NDczLTcwQkYtNDg4Ri1BMUM2LTZBM0Y4MTMzN0QwRCJ9")
+                XCTAssertEqual(payload, "eyJpc3MiOiIxMDAwQTBCNS1FNDJELTRBMEEtQUNEOC05QjM1QjdBQzBEQjIiLCJleHAiOi02MjEzNTc2OTYwMCwiYXVkIjoiYXBwc3RvcmVjb25uZWN0LXYxIn0")
+            } catch {
+                XCTFail("Unexpected error \(error)")
+            }
         }
     }
 

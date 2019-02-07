@@ -50,20 +50,22 @@ struct JWTBuilder: JWTBuilderProtocol {
     let pKeyID: String
     let pKey: String
     let expireDuration: TimeInterval
-
+    let referenceDate: Date
 
     init(issuerID: String,
          pKeyID: String,
          pKey: String,
-         expireDuration: TimeInterval = 60 * 20) {
+         expireDuration: TimeInterval = 60 * 20,
+         referenceDate: Date = Date()) {
         self.issuerID = issuerID
         self.pKeyID = pKeyID
         self.pKey = pKey
+        self.referenceDate = referenceDate
         self.expireDuration = expireDuration
     }
 
     func makeJWTToken() throws -> JWTToken {
-        let expirationDate = Date().addingTimeInterval(self.expireDuration)
+        let expirationDate = self.referenceDate.addingTimeInterval(self.expireDuration)
         let header = JWTHeader(alg: "ES256", typ: "JWT", kid: self.pKeyID)
         let payload = Payload(issuerIdentifier: IssuerClaim(value: self.issuerID), expirationDate: ExpirationClaim(value: expirationDate))
         let jwt = JWT(header: header, payload: payload)
@@ -92,6 +94,6 @@ private extension JWTBuilder {
     func makeSigner() throws -> JWTSigner {
         guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
 
-        return JWTSigner.hs256(key: privateKey)
+        return JWTSigner(algorithm: ES256(key: privateKey))
     }
 }
