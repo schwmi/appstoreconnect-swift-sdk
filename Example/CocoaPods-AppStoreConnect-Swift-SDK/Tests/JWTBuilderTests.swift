@@ -1,5 +1,5 @@
 //
-//  JWTTests.swift
+//  JWTBuilderTests.swift
 //  AppStoreConnect-Swift-SDK_Tests
 //
 //  Created by Antoine van der Lee on 11/11/2018.
@@ -9,7 +9,7 @@
 import XCTest
 @testable import AppStoreConnect_Swift_SDK
 
-final class JWTTests: XCTestCase {
+final class JWTBuilderTests: XCTestCase {
 
     private let configuration = APIConfiguration(
         issuerID: "1000A0B5-E42D-4A0A-ACD8-9B35B7AC0DB2",
@@ -25,6 +25,21 @@ final class JWTTests: XCTestCase {
 
         XCTAssertThrowsError(try jwtBuilder.makeJWTToken()) { error in
             XCTAssertEqual(error as? JWTBuilder.Error, JWTBuilder.Error.invalidPrivateKey)
+        }
+    }
+
+    /// Test JWTToken generation
+    func testTokenGeneration() {
+        let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                    pKeyID: configuration.privateKeyID,
+                                    pKey: configuration.privateKey,
+                                    expireDuration: 20)
+
+        do {
+            let token = try jwtBuilder.makeJWTToken()
+            print(token)
+        } catch {
+            XCTFail("Unexpected error \(error)")
         }
     }
 }

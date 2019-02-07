@@ -60,7 +60,8 @@ struct JWTBuilder: JWTBuilderProtocol {
         var jwt = JWT(header: .init(kid: self.pKeyID), claims: AudienceClaim(issuerIdentifier: self.issuerID, expirationTime: Date().addingTimeInterval(self.expireDuration)))
         guard let base64Data = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
 
-        return try jwt.sign(using: JWTSigner.rs256(privateKey: base64Data))
+        let privateKey = self.pKey.data(using: .utf8)!
+        return try jwt.sign(using: JWTSigner.rs256(privateKey: privateKey))
     }
 
     func validate(_ token: JWTToken) -> Bool {
