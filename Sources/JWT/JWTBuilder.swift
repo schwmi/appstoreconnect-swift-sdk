@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftJWT
+import JWT
 
 
 typealias JWTToken = String
@@ -21,20 +21,26 @@ struct JWTBuilder: JWTBuilderProtocol {
 
     enum Error: Swift.Error {
         case invalidPrivateKey
+        case tokenGeneration
     }
 
-    private struct AudienceClaim: Claims {
+    private struct Payload: JWTPayload {
+
         /// Your issuer identifier from the API Keys page in App Store Connect (Ex: 57246542-96fe-1a63-e053-0824d011072a)
-        let issuerIdentifier: String
+        let issuerIdentifier: IssuerClaim
         /// The required audience which is set to the App Store Connect version.
-        let audience: String = "appstoreconnect-v1"
+        let audience: AudienceClaim = "appstoreconnect-v1"
         /// The token's expiration time, in Unix epoch time; tokens that expire more than 20 minutes in the future are not valid (Ex: 1528408800)
-        let expirationTime: Date
+        let expirationDate: ExpirationClaim
 
         enum CodingKeys: String, CodingKey {
             case issuerIdentifier = "iss"
-            case expirationTime = "exp"
+            case expirationDate = "exp"
             case audience = "aud"
+        }
+
+        func verify(using signer: JWTSigner) throws {
+            try expirationDate.verifyNotExpired()
         }
     }
 
@@ -57,16 +63,27 @@ struct JWTBuilder: JWTBuilderProtocol {
     }
 
     func makeJWTToken() throws -> JWTToken {
-        var jwt = JWT(header: .init(kid: self.pKeyID), claims: AudienceClaim(issuerIdentifier: self.issuerID, expirationTime: Date().addingTimeInterval(self.expireDuration)))
-        guard let base64Data = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
+        let expirationDate = Date().addingTimeInterval(self.expireDuration)
+        let header = JWTHeader(alg: "ES256", typ: "JWT", kid: self.pKeyID)
+        let payload = Payload(issuerIdentifier: IssuerClaim(value: self.issuerID), expirationDate: ExpirationClaim(value: expirationDate))
+        let jwt = JWT(header: header, payload: payload)
+        guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
 
-        let privateKey = self.pKey.data(using: .utf8)!
-        return try jwt.sign(using: JWTSigner.rs256(privateKey: privateKey))
+        let signed = try jwt.sign(using: JWTSigner.hs256(key: privateKey))
+        guard let token = String(data: signed, encoding: .utf8) else { throw Error.tokenGeneration }
+
+        return token
     }
 
     func validate(_ token: JWTToken) -> Bool {
-        // TODO
-        return true
-       // JWT(jwtString: token)
+        do {
+            guard let privateKey = Data(base64Encoded: self.pKey) else { throw Error.invalidPrivateKey }
+
+            let signer = JWTSigner.hs256(key: privateKey)
+            _ = try JWT<Payload>(from: token, verifiedUsing: signer)
+            return true
+        } catch {
+            return false
+        }
     }
 }

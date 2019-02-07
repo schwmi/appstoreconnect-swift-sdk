@@ -42,4 +42,37 @@ final class JWTBuilderTests: XCTestCase {
             XCTFail("Unexpected error \(error)")
         }
     }
+
+    /// Test JWTToken validation
+    func testTokenValidation() {
+        // Valid JWT
+        do {
+            let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                        pKeyID: configuration.privateKeyID,
+                                        pKey: configuration.privateKey,
+                                        expireDuration: 20)
+
+            do {
+                let token = try jwtBuilder.makeJWTToken()
+                XCTAssertTrue(jwtBuilder.validate(token))
+            } catch {
+                XCTFail("Unexpected error \(error)")
+            }
+        }
+
+        // Expired
+        do {
+            let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
+                                        pKeyID: configuration.privateKeyID,
+                                        pKey: configuration.privateKey,
+                                        expireDuration: -20)
+
+            do {
+                let token = try jwtBuilder.makeJWTToken()
+                XCTAssertFalse(jwtBuilder.validate(token))
+            } catch {
+                XCTFail("Unexpected error \(error)")
+            }
+        }
+    }
 }

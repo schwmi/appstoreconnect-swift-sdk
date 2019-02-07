@@ -11,13 +11,13 @@ let package = Package(
     ],
     dependencies: [
         .package(
-            url: "https://github.com/IBM-Swift/Swift-JWT.git",
-            from: "3.1.0")
+            url: "https://github.com/vapor/jwt.git",
+            from: "3.0.0")
     ],
     targets: [
         .target(
             name: "AppStoreConnect-Swift-SDK",
-            dependencies: ["SwiftJWT"],
+            dependencies: ["JWT"],
             path: "Sources"),
         .testTarget(
             name: "AppStoreConnect-Swift-SDKTests",
@@ -25,4 +25,3 @@ let package = Package(
             path: "Example/CocoaPods-AppStoreConnect-Swift-SDK/Tests")
     ]
 )
-
