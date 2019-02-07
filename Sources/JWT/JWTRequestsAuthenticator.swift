@@ -11,34 +11,37 @@ import Foundation
 /// An Authenticator for URL Requests which makes use of the RequestAdapter from Alamofire.
 final class JWTRequestsAuthenticator {
 
-//    private var cachedToken: JWT.Token?
+    private var cachedToken: JWTToken?
     private let apiConfiguration: APIConfiguration
-//
-//    /// The JWT Creator to use for creating the JWT token. Can be overriden for test use cases.
-//    var jwtCreator: JWTCreatable
-//
+
+    /// The JWT Builder to use for creating the JWT token. Can be overriden for test use cases.
+   var jwtBuilder: JWTBuilderProtocol
+
     init(apiConfiguration: APIConfiguration) {
         self.apiConfiguration = apiConfiguration
 
-        //self.jwtCreator = JWT(keyIdentifier: apiConfiguration.privateKeyID, issuerIdentifier: apiConfiguration.issuerID, expireDuration: 60 * 20)
+        self.jwtBuilder = JWTBuilder(issuerID: apiConfiguration.issuerID,
+                                     pKeyID: apiConfiguration.privateKeyID,
+                                     pKey: apiConfiguration.privateKey,
+                                     expireDuration: 60 * 20)
     }
-//
-//    /// Generates a new JWT Token, but only if the in memory cached one is not expired.
-//    private func createToken() throws -> JWT.Token {
-//        if let cachedToken = cachedToken, !cachedToken.isExpired {
-//            return cachedToken
-//        }
-//
-//        let token = try jwtCreator.signedToken(using: apiConfiguration.privateKey)
-//        cachedToken = token
-//        return token
-//    }
+
+    /// Generates a new JWT Token, but only if the in memory cached one is not expired.
+    private func createToken() throws -> JWTToken {
+        if let cachedToken = cachedToken, self.jwtBuilder.validate(cachedToken) {
+            return cachedToken
+        }
+
+        let token = try self.jwtBuilder.makeJWTToken()
+        self.cachedToken = token
+        return token
+    }
 }
 
 extension JWTRequestsAuthenticator {
 
     func adapt(_ urlRequest: URLRequest) throws -> URLRequest {
-        let token = ""// try createToken()
+        let token = try createToken()
         var urlRequest = urlRequest
         urlRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         return urlRequest
