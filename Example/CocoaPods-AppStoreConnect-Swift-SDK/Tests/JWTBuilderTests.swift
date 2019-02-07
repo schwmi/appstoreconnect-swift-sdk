@@ -16,18 +16,6 @@ final class JWTBuilderTests: XCTestCase {
         privateKeyID: "941C4473-70BF-488F-A1C6-6A3F81337D0D",
         privateKey: "MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgPaXyFvZfNydDEjxgjUCUxyGjXcQxiulEdGxoVbasV3GgCgYIKoZIzj0DAQehRANCAASflx/DU3TUWAoLmqE6hZL9A7i0DWpXtmIDCDiITRznC6K4/WjdIcuMcixy+m6O0IrffxJOablIX2VM8sHRscdr")
 
-    /// It should report an invalid P8 private key.
-    func testInvalidP8PrivateKey() {
-        let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,
-                                    pKeyID: configuration.privateKeyID,
-                                    pKey: "&^&%^$%$%",
-                                    expireDuration: 20)
-
-        XCTAssertThrowsError(try jwtBuilder.makeJWTToken()) { error in
-            XCTAssertEqual(error as? JWTBuilder.Error, JWTBuilder.Error.invalidPrivateKey)
-        }
-    }
-
     /// Test JWTToken generation
     func testTokenGeneration() {
         let jwtBuilder = JWTBuilder(issuerID: configuration.issuerID,

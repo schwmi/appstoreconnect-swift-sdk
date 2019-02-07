@@ -12,7 +12,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/vapor/jwt.git",
-            from: "3.0.0")
+            from: "2.3.0")
     ],
     targets: [
         .target(
