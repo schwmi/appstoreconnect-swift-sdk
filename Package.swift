@@ -9,9 +9,13 @@ let package = Package(
             name: "AppStoreConnect-Swift-SDK",
             targets: ["AppStoreConnect-Swift-SDK"])
     ],
+    dependencies: [
+        .package(url: "https://github.com/schwmi/JWT.git", .upToNextMajor(from: "0.1.0"))
+        ],
     targets: [
         .target(
             name: "AppStoreConnect-Swift-SDK",
+            dependencies: ["JWT"],
             path: "Sources"),
         .testTarget(
             name: "AppStoreConnect-Swift-SDKTests",
