@@ -11,7 +11,8 @@ import JWT
 /// An Authenticator for URL Requests which makes use of the RequestAdapter from Alamofire.
 final class JWTRequestsAuthenticator {
 
-    private var cachedToken: JWT?
+    private var cachedJWT: JWT?
+    private var cachedToken: String?
     private let apiConfiguration: APIConfiguration
 
     /// The JWT Creator to use for creating the JWT token. Can be overriden for test use cases.
@@ -25,15 +26,18 @@ final class JWTRequestsAuthenticator {
 
     /// Generates a new JWT Token, but only if the in memory cached one is not expired.
     private func createToken() throws -> String {
-        if let cachedToken = self.cachedToken, !cachedToken.isExpired {
-            return try cachedToken.makeToken()
+        if let cachedJWT = self.cachedJWT, let cachedToken = self.cachedToken, !cachedJWT.isExpired {
+            return cachedToken
         }
 
         let jwt = JWT(header: .init(keyIdentifier: self.apiConfiguration.privateKeyID),
             payload: .init(issuerIdentifier: self.apiConfiguration.issuerID,
                            expirationTime: Date().timeIntervalSince1970 + 60 * 15),
             signer: self.signer)
-        return try jwt.makeToken()
+        let token = try jwt.makeToken()
+        self.cachedJWT = jwt
+        self.cachedToken = token
+        return token
     }
 }
 
