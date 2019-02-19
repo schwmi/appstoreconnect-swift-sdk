@@ -15,7 +15,7 @@ public final class DefaultRequestExecutor: RequestExecutor {
         case unknownResponseType
     }
 
-    private let urlSession = URLSession(configuration: .standard)
+    private let urlSession = URLSession(configuration: .default)
 
     public init() { }
 
