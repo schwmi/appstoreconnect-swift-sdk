@@ -7,9 +7,7 @@
 
 import Foundation
 
-
 public typealias RequestCompletionHandler<T> = (Result<T>) -> Void
-
 
 /// The configuration needed to set up the API Provider including all needed information for performing API requests.
 public struct APIConfiguration {
@@ -67,6 +65,7 @@ public final class APIProvider {
     ///
     /// - Parameters:
     ///   - configuration: The configuration needed to set up the API Provider including all needed information for performing API requests.
+    ///   - requestExecutor: An instance conforming to the RequestExecutor protocol for executing URLRequest
     public init(configuration: APIConfiguration, requestExecutor: RequestExecutor = DefaultRequestExecutor()) {
         self.configuration = configuration
         self.requestExecutor = requestExecutor
@@ -78,12 +77,12 @@ public final class APIProvider {
     ///   - endpoint: The API endpoint to request.
     ///   - completion: The completion callback which will be called on completion containing the result.
     public func request(_ endpoint: APIEndpoint<Void>, completion: @escaping RequestCompletionHandler<Void>) {
-        guard let request = try? self.requestsAuthenticator.adapt(endpoint.asURLRequest()) else {
+        guard let request = try? requestsAuthenticator.adapt(endpoint.asURLRequest()) else {
             completion(.failure(Error.requestGeneration))
             return
         }
 
-        self.requestExecutor.execute(request) { completion(self.mapVoidResponse($0)) }
+        requestExecutor.execute(request) { completion(self.mapVoidResponse($0)) }
     }
     
     /// Performs a data request to the given API endpoint
@@ -92,12 +91,12 @@ public final class APIProvider {
     ///   - endpoint: The API endpoint to request.
     ///   - completion: The completion callback which will be called on completion containing the result.
     public func request<T: Decodable>(_ endpoint: APIEndpoint<T>, completion: @escaping RequestCompletionHandler<T>) {
-        guard let request = try? self.requestsAuthenticator.adapt(endpoint.asURLRequest()) else {
+        guard let request = try? requestsAuthenticator.adapt(endpoint.asURLRequest()) else {
             completion(.failure(Error.requestGeneration))
             return
         }
 
-        self.requestExecutor.execute(request) { completion(self.mapResponse($0)) }
+        requestExecutor.execute(request) { completion(self.mapResponse($0)) }
     }
     
     /// Performs a data request to the given ResourceLinks
@@ -107,7 +106,7 @@ public final class APIProvider {
     ///   - completion: The completion callback which will be called on completion containing the result.
     public func request<T: Decodable>(_ resourceLinks: ResourceLinks<T>, completion: @escaping RequestCompletionHandler<T>) {
 
-        self.requestExecutor.retrieve(resourceLinks.`self`) { completion(self.mapResponse($0)) }
+        requestExecutor.retrieve(resourceLinks.`self`) { completion(self.mapResponse($0)) }
     }
 }
 
@@ -115,13 +114,17 @@ public final class APIProvider {
 
 private extension APIProvider {
 
+    /// Maps a network response to a decodable type
+    ///
+    /// - Parameter result: A result type containing either the network response or an error
+    /// - Returns: A result type containing either the decoded type or an error
     func mapResponse<T: Decodable>(_ result: Result<Response>) -> Result<T> {
         switch result {
         case .success(let response):
             guard let data = response.data, 200..<300 ~= response.statusCode else {
                 return .failure(Error.requestFailure(response.statusCode, response.data))
             }
-            guard let decodedValue =  try? self.jsonDecoder.decode(T.self, from: data) else {
+            guard let decodedValue = try? jsonDecoder.decode(T.self, from: data) else {
                 return .failure(Error.decodingError(data))
             }
 
@@ -131,14 +134,20 @@ private extension APIProvider {
         }
     }
 
+    /// Maps a network response to a (void) result type
+    ///
+    /// - Parameter result: A result type containing either the network response or an error
+    /// - Returns: A result type containing either void or an error
     func mapVoidResponse(_ result: Result<Response>) -> Result<Void> {
         switch result {
-        case .success:
+        case .success(let response):
+            guard 200..<300 ~= response.statusCode else {
+                return .failure(Error.requestFailure(response.statusCode, nil))
+            }
+
             return .success(())
         case .failure(let error):
             return .failure(Error.requestExecutorError(error))
         }
     }
 }
-
-
