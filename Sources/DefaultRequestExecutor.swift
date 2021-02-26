@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 /// An URLSession based RequestExecutor implemention
 public final class DefaultRequestExecutor: RequestExecutor {

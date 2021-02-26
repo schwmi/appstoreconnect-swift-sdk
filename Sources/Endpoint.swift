@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 /// Defines all data needed to build the URL Request with.
 public struct APIEndpoint<T> {
