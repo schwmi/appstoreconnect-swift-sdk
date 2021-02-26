@@ -5,7 +5,7 @@
 //  Created by Antoine van der Lee on 11/11/2018.
 //  Copyright © 2018 CocoaPods. All rights reserved.
 //
-
+/*
 import XCTest
 @testable import AppStoreConnect_Swift_SDK
 
@@ -24,4 +24,4 @@ final class JWTTests: XCTestCase {
             XCTAssertEqual(error as! JWT.Error, JWT.Error.invalidP8PrivateKey)
         }
     }
-}
+}*/
