@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 /// An Authenticator for URL Requests which makes use of the RequestAdapter from Alamofire.
 final class JWTRequestsAuthenticator {

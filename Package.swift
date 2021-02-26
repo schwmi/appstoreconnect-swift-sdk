@@ -23,7 +23,6 @@ let package = Package(
         .testTarget(name: "AppStoreConnect-Swift-SDK-Tests",
                     dependencies: ["AppStoreConnect-Swift-SDK"],
                     path: "Tests",
-                    exclude: ["LinuxMain.swift"],
                     resources: [.process("Models/Fixtures.bundle")])
     ]
 )
