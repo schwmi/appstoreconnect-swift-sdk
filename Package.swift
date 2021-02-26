@@ -5,19 +5,25 @@ import PackageDescription
 let package = Package(
     name: "AppStoreConnect-Swift-SDK",
     platforms: [
-        .iOS(.v11),
-        .macOS(.v10_12)
+        .iOS(.v13),
+        .macOS(.v10_15)
     ],
     products: [
         .library(name: "AppStoreConnect-Swift-SDK", targets: ["AppStoreConnect-Swift-SDK"])
     ],
-    dependencies: [],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0")
+    ],
     targets: [
+        .target(name: "AppStoreConnect-Swift-SDK",
+                dependencies: [
+                    .product(name: "Crypto", package: "swift-crypto")
+                ],
+                path: "Sources"),
         .testTarget(name: "AppStoreConnect-Swift-SDK-Tests",
                     dependencies: ["AppStoreConnect-Swift-SDK"],
                     path: "Tests",
                     exclude: ["LinuxMain.swift"],
-                    resources: [.process("Models/Fixtures.bundle")]),
-        .target(name: "AppStoreConnect-Swift-SDK", path: "Sources")
+                    resources: [.process("Models/Fixtures.bundle")])
     ]
 )

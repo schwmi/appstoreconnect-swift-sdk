@@ -6,7 +6,8 @@
 //
 
 import Foundation
-import CommonCrypto
+import Crypto
+import CCryptoBoringSSL
 
 public typealias ECPrivateKey = SecKey
 
@@ -16,9 +17,9 @@ extension ECPrivateKey {
             throw JWT.Error.ES256SigningFailed
         }
 
-        var hash = [UInt8](repeating: 0, count: Int(CC_SHA256_DIGEST_LENGTH))
-        CC_SHA256((message as NSData).bytes, CC_LONG(message.count), &hash)
-        let digestData = Data(hash)
+        var sha256 = SHA256()
+        sha256.update(data: message)
+        let digest = sha256.finalize()
 
         let algorithm = SecKeyAlgorithm.ecdsaSignatureDigestX962SHA256
 
@@ -29,7 +30,7 @@ extension ECPrivateKey {
 
         var error: Unmanaged<CFError>?
 
-        guard let signature = SecKeyCreateSignature(self, algorithm, digestData as CFData, &error) else {
+        guard let signature = SecKeyCreateSignature(self, algorithm, Data(digest) as CFData, &error) else {
             throw JWT.Error.privateKeyConversionFailed
         }
 
