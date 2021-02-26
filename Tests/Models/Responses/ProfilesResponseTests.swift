@@ -18,9 +18,9 @@ final class ProfilesResponseTests: XCTestCase {
         _ = try decoder.decode(ProfilesResponse.self, from: fixture.data)
     }
 
-    func testDecodeEmpty() throws {
-        try decodeFixture(named: "v1/profiles/empty")
-    }
+//    func testDecodeEmpty() throws {
+//        try decodeFixture(named: "v1/profiles/empty")
+//    }
 
     func testDecodeNonEmpty() throws {
         try decodeFixture(named: "v1/profiles/non_empty")

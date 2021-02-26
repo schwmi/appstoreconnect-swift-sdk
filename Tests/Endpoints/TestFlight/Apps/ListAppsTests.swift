@@ -8,6 +8,9 @@
 
 import XCTest
 @testable import AppStoreConnect_Swift_SDK
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 final class ListAppsTests: XCTestCase {
     

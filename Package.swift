@@ -1,25 +1,28 @@
-// swift-tools-version:5.1
-// We're hiding dev, test, and danger dependencies with // dev to make sure they're not fetched by users of this package.
+// swift-tools-version:5.3.0
 
 import PackageDescription
 
 let package = Package(
     name: "AppStoreConnect-Swift-SDK",
     platforms: [
-        .iOS(.v11),
-        .macOS(.v10_12)
+        .iOS(.v13),
+        .macOS(.v10_15)
     ],
     products: [
-        // dev .library(name: "DangerDeps", type: .dynamic, targets: ["DangerDependencies"]),
         .library(name: "AppStoreConnect-Swift-SDK", targets: ["AppStoreConnect-Swift-SDK"])
     ],
     dependencies: [
-        // dev .package(url: "https://github.com/danger/swift", from: "3.0.0"),
-        // dev .package(path: "Submodules/WeTransfer-iOS-CI/Danger-Swift")
-        ],
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "1.1.0")
+    ],
     targets: [
-        // dev .target(name: "DangerDependencies", dependencies: ["Danger", "WeTransferPRLinter"], path: "Submodules/WeTransfer-iOS-CI/Danger-Swift", sources: ["DangerFakeSource.swift"]),
-        // dev .testTarget(name: "AppStoreConnect-Swift-SDK-Tests", dependencies: ["AppStoreConnect-Swift-SDK"], path: "Tests", exclude: ["LinuxMain.swift"]),
-        .target(name: "AppStoreConnect-Swift-SDK", path: "Sources")
+        .target(name: "AppStoreConnect-Swift-SDK",
+                dependencies: [
+                    .product(name: "Crypto", package: "swift-crypto")
+                ],
+                path: "Sources"),
+        .testTarget(name: "AppStoreConnect-Swift-SDK-Tests",
+                    dependencies: ["AppStoreConnect-Swift-SDK"],
+                    path: "Tests",
+                    resources: [.process("Models/Fixtures.bundle")])
     ]
 )

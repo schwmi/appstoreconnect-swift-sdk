@@ -10,7 +10,7 @@ import Foundation
 struct Fixture {
     var data: Data
 
-    init(named: String, in bundle: Bundle = .tests) throws {
+    init(named: String, in bundle: Bundle = .module) throws {
 
         guard let url = bundle.url(forResource: named, withExtension: "json", subdirectory: "Fixtures.bundle") else {
             fatalError("Unable to find fixture named: \(named)")

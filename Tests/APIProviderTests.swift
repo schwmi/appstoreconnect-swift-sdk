@@ -7,6 +7,9 @@
 
 import XCTest
 @testable import AppStoreConnect_Swift_SDK
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 final class APIProviderTests: XCTestCase {
 
@@ -179,6 +182,7 @@ final class APIProviderTests: XCTestCase {
         let outputFormatter = DateFormatter()
         outputFormatter.dateFormat = "E, d MMM yyyy HH:mm:ss Z"
         outputFormatter.locale = Locale(identifier: "en_US_POSIX")
+        outputFormatter.timeZone = TimeZone(identifier: "GMT")!
 
         let dateFrom: (String) throws -> String = { dateString in
             let date = try decoder.decode(Date.self, from: "\"\(dateString)\"".data(using: .utf8)!)
