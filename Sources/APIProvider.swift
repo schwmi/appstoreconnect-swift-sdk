@@ -6,6 +6,9 @@
 //
 
 import Foundation
+#if os(Linux)
+import FoundationNetworking
+#endif
 
 public typealias RequestCompletionHandler<T> = (Result<T>) -> Void
 
